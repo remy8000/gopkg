@@ -1,4 +1,4 @@
-module gopkg
+module github.com/remy8000/gopkg
 
 go 1.24.5
 
