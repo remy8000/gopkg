@@ -5,6 +5,7 @@ go 1.24.5
 require (
 	github.com/elastic/go-elasticsearch/v8 v8.19.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/net v0.46.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.31.0
 )
@@ -21,5 +22,5 @@ require (
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 )
