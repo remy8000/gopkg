@@ -141,21 +141,21 @@ func GetDocsMultiIds(index string, ids []string, source []string, timeOut int) (
 	return docs, nil
 }
 
-func SaveDoc(index string, d Doc, timeOut int) error {
+func SaveDoc(index string, d Doc, timeOut int) (string,error) {
 
 	// CHECKS
 	exists, err := IndexExists(index)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if !exists {
-		return fmt.Errorf("no index with name '%s'", index)
+		return "", fmt.Errorf("no index with name '%s'", index)
 	}
 
 	body, err := json.Marshal(d)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Set up a context with a timeout.
@@ -173,9 +173,9 @@ func SaveDoc(index string, d Doc, timeOut int) error {
 	res, err := req.Do(ctx, es)
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return fmt.Errorf("SaveDoc - request timed out")
+			return "", fmt.Errorf("SaveDoc - request timed out")
 		}
-		return fmt.Errorf("es error getting response: %s", err)
+		return "", fmt.Errorf("es error getting response: %s", err)
 	}
 	
 	// Securely close Body
@@ -184,12 +184,18 @@ func SaveDoc(index string, d Doc, timeOut int) error {
 	}
 
 	//  deserialize response and possible errors
-	_, err = getResponseMap(res)
+	r, err := getResponseMap(res)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	id, ok := r["_id"].(string)
+    if !ok {
+        return "", fmt.Errorf("could not get document ID from response")
+    }
+
+
+	return id, nil
 }
 
 // return id
