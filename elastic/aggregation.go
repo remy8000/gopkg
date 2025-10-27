@@ -9,9 +9,9 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
-// this functions makes a query including a aggregation
-// the name has to be specified in order to retrieve the contained docs in the buckets
-// returns a map[bucket_name] = []docs
+// Aggregation makes a query including an aggregation
+// The aggregation name has to be specified in order to retrieve the buckets with doc counts
+// Returns a map[bucket_name] = []map with doc_count
 func Aggregation(index, aggregationName string, query map[string]interface{}) (map[string][]map[string]interface{}, error) {
 
 	bucketsMap := make(map[string][]map[string]interface{})
@@ -49,47 +49,29 @@ func Aggregation(index, aggregationName string, query map[string]interface{}) (m
 		defer res.Body.Close()
 	}
 
-	//  deserialize response and possible errors
+	// Deserialize response and possible errors
 	r, err := getResponseMap(res)
 	if err != nil {
 		return bucketsMap, err
 	}
 
-	// get aggs buckets with safe type assertions
-	aggs, ok := r["aggregations"].(map[string]interface{})
-	if !ok {
-		return bucketsMap, fmt.Errorf("missing 'aggregations' field in response")
-	}
-	agg, ok := aggs[aggregationName].(map[string]interface{})
-	if !ok {
-		return bucketsMap, fmt.Errorf("missing aggregation '%s' in response", aggregationName)
-	}
-	buckets, ok := agg["buckets"].(map[string]interface{})
-	if !ok {
-		return bucketsMap, fmt.Errorf("missing or invalid 'buckets' field in aggregation '%s'", aggregationName)
+	// Extract aggregation buckets
+	aggs, found := r["aggregations"].(map[string]interface{})[aggregationName].(map[string]interface{})["buckets"]
+	if !found {
+		return bucketsMap, fmt.Errorf("aggregation %s not found in response", aggregationName)
 	}
 
-	for key, element := range buckets {
-		elemMap, ok := element.(map[string]interface{})
-		if !ok {
-			return bucketsMap, fmt.Errorf("invalid bucket element for key '%s'", key)
+	buckets := aggs.([]interface{})
+	for _, element := range buckets {
+		bucket := element.(map[string]interface{})
+		key := bucket["key"].(string)
+		docCount := bucket["doc_count"].(float64)
+
+		// Add each bucket with its document count
+		bucketsMap[key] = []map[string]interface{}{
+			{"doc_count": docCount},
 		}
-		hitsOuter, ok := elemMap["hits"].(map[string]interface{})
-		if !ok {
-			return bucketsMap, fmt.Errorf("missing 'hits' in bucket '%s'", key)
-		}
-		hitsInner, ok := hitsOuter["hits"].([]interface{})
-		if !ok {
-			return bucketsMap, fmt.Errorf("missing or invalid 'hits' array in bucket '%s'", key)
-		}
-		var docsMap []map[string]interface{}
-		for _, h := range hitsInner {
-			doc, ok := h.(map[string]interface{})
-			if ok {
-				docsMap = append(docsMap, doc)
-			}
-		}
-		bucketsMap[key] = docsMap
 	}
+
 	return bucketsMap, nil
 }
