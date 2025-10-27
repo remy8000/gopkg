@@ -11,7 +11,8 @@ var es *elasticsearch.Client
 
 func Setup(cfg elasticsearch.Config) error {
 	var err error
-	es, err = elasticsearch.NewClient(cfg); if err != nil {
+	es, err = elasticsearch.NewClient(cfg)
+	if err != nil {
 		return err
 	}
 	return nil
@@ -31,7 +32,7 @@ func ClusterInfo() (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	
+
 	// Securely close Body
 	if res.Body != nil {
 		defer res.Body.Close()
@@ -42,12 +43,11 @@ func ClusterInfo() (string, string, error) {
 		return "", "", fmt.Errorf("es res error: %s", res.String())
 	}
 
-
 	// Deserialize the response into a map.
-	var r  map[string]interface{}
+	var r map[string]interface{}
 	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
 		return "", "", fmt.Errorf("error parsing the response body: %s", err)
 	}
-	
-	return elasticsearch.Version, fmt.Sprintf("%v",r["version"].(map[string]interface{})["number"]), nil
+
+	return elasticsearch.Version, fmt.Sprintf("%v", r["version"].(map[string]interface{})["number"]), nil
 }

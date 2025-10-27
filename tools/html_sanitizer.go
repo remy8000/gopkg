@@ -5,12 +5,12 @@ import (
 	"strings"
 )
 
-// SanatizedHtmlWithRegexp removes all HTML tags from the given string `doc`
+// SanitizedHtmlWithRegexp removes all HTML tags from the given string `doc`
 // It performs better than the `sanitizer.StrictPolicy` function by:
 // - Removing all HTML tags (e.g., `<h3>`, `<p>`) and replacing them with spaces
 // - Removing redundant whitespace created from removed tags or existing spaces
 // - Trimming leading and trailing spaces for a clean result
-func SanatizedHtmlWithRegexp(doc string) string {
+func SanitizedHtmlWithRegexp(doc string) string {
     // Define a regular expression pattern to match any HTML tag.
     // `<[^>]+>`:
     // - `<` matches the opening tag character.
