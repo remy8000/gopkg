@@ -46,3 +46,23 @@ func Excerpt(s string, wordsCount int) string {
 	}
 	return excerpt
 }
+
+// CleanTextFromJavaScript removes JavaScript/jQuery code from the given text.
+// It uses a regular expression to identify and remove patterns that match
+// JavaScript/jQuery code, specifically those starting with "$(" and ending
+// with the end of the line.
+//
+// Parameters:
+//   text - The input string that may contain JavaScript/jQuery code.
+//
+// Returns:
+//   A string with the JavaScript/jQuery code removed.
+func CleanTextFromJavaScript(text string) string {
+	// Regex pattern to match JavaScript/jQuery code
+	re := regexp.MustCompile(`\$\([^)]*\)[\s\S]*?$`) 
+	
+	// Replace matches with an empty string
+	cleanedText := re.ReplaceAllString(text, "")
+
+	return cleanedText
+}
